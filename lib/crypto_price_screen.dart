@@ -36,7 +36,7 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
       setState(() {
         cryptocurrencies = data;
         filteredCryptocurrencies = data;
-        showError = false; // Resetar o showError para false quando os dados são atualizados
+        showError = false;
       });
     } catch (e) {
       print(e.toString());
@@ -84,7 +84,7 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: filteredCryptocurrencies.length,
+              itemCount: filteredCryptocurrencies.length > 10 ? 10 : filteredCryptocurrencies.length,
               itemBuilder: (context, index) {
                 final cryptocurrency = filteredCryptocurrencies[index];
                 final name = cryptocurrency['name'];
