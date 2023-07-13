@@ -9,7 +9,6 @@ class CryptoPriceScreen extends StatefulWidget {
 
 class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
   List<dynamic> cryptocurrencies = [];
-  List<dynamic> filteredCryptocurrencies = [];
   Timer? timer;
   bool showError = false;
 
@@ -17,7 +16,7 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
   void initState() {
     super.initState();
     fetchCryptocurrencies();
-    timer = Timer.periodic(Duration(seconds: 5), (Timer t) {
+    timer = Timer.periodic(Duration(minutes: 5), (Timer t) {
       if (!showError) {
         fetchCryptocurrencies();
       }
@@ -35,7 +34,6 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
       final data = await ApiService.fetchCryptocurrencies();
       setState(() {
         cryptocurrencies = data;
-        filteredCryptocurrencies = data;
         showError = false;
       });
     } catch (e) {
@@ -55,15 +53,6 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
     }
   }
 
-  void filterCryptocurrencies(String value) {
-    setState(() {
-      filteredCryptocurrencies = cryptocurrencies.where((cryptocurrency) {
-        final name = cryptocurrency['name'].toString().toLowerCase();
-        return name.contains(value.toLowerCase());
-      }).toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,21 +61,11 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: filterCryptocurrencies,
-              decoration: InputDecoration(
-                labelText: 'Buscar por nome',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
           Expanded(
             child: ListView.builder(
-              itemCount: filteredCryptocurrencies.length > 10 ? 10 : filteredCryptocurrencies.length,
+              itemCount: cryptocurrencies.length > 10 ? 10 : cryptocurrencies.length,
               itemBuilder: (context, index) {
-                final cryptocurrency = filteredCryptocurrencies[index];
+                final cryptocurrency = cryptocurrencies[index];
                 final name = cryptocurrency['name'];
                 final symbol = cryptocurrency['symbol'];
                 final id = cryptocurrency['id'];
