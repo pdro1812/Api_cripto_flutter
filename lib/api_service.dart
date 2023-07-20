@@ -32,7 +32,7 @@ class ApiService {
         headers: {
           'X-CMC_PRO_API_KEY': apiKey,
         },
-      ).timeout(Duration(seconds: 20)); // Timeout de 20 segundos
+      ).timeout(Duration(seconds: 10)); // Timeout de 20 segundos
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -40,10 +40,10 @@ class ApiService {
         final price = quote['price'];
         return price.toDouble();
       } else {
-        return null; // Retorna null caso a chamada não seja bem-sucedida
+        return null; 
       }
     } catch (e) {
-      return null; // Retorna null caso ocorra uma exceção durante a chamada
+      return null; 
     }
   }
 }

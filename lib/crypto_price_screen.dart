@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
-import 'dart:async';
 
 class CryptoPriceScreen extends StatefulWidget {
   @override
@@ -9,24 +8,12 @@ class CryptoPriceScreen extends StatefulWidget {
 
 class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
   List<dynamic> cryptocurrencies = [];
-  Timer? timer;
-  bool showError = false;
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
     fetchCryptocurrencies();
-    timer = Timer.periodic(Duration(minutes: 5), (Timer t) {
-      if (!showError) {
-        fetchCryptocurrencies();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
   }
 
   Future<void> fetchCryptocurrencies() async {
@@ -34,13 +21,12 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
       final data = await ApiService.fetchCryptocurrencies();
       setState(() {
         cryptocurrencies = data;
-        showError = false;
+        loading = false; // Definir como false para indicar que os dados foram carregados
       });
     } catch (e) {
       print(e.toString());
-      setState(() {
-        showError = true;
-      });
+      // Chama o método novamente após 5 segundos em caso de erro
+      Future.delayed(Duration(seconds: 5), () => fetchCryptocurrencies());
     }
   }
 
@@ -62,43 +48,51 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: cryptocurrencies.length > 5 ? 5 : cryptocurrencies.length,
-              itemBuilder: (context, index) {
-                final cryptocurrency = cryptocurrencies[index];
-                final name = cryptocurrency['name'];
-                final symbol = cryptocurrency['symbol'];
-                final id = cryptocurrency['id'];
+            child: loading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : cryptocurrencies.isEmpty
+                    ? Center(
+                        child: Text('Nenhum dado disponível.'),
+                      )
+                    : ListView.builder(
+                        itemCount: cryptocurrencies.length > 5 ? 5 : cryptocurrencies.length,
+                        itemBuilder: (context, index) {
+                          final cryptocurrency = cryptocurrencies[index];
+                          final name = cryptocurrency['name'];
+                          final symbol = cryptocurrency['symbol'];
+                          final id = cryptocurrency['id'];
 
-                return ListTile(
-                  title: Text('$name ($symbol)'),
-                  subtitle: Builder(builder: (context) {
-                    return FutureBuilder<double?>(
-                      future: fetchCryptoPrice(id, 'BRL'),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Text('Carregando');
-                        } else if (snapshot.hasData && snapshot.data != null) {
-                          final price = snapshot.data!;
-                          return Text('R\$${price.toStringAsFixed(2)}');
-                        } else {
-                          return FutureBuilder<bool>(
-                            future: Future.delayed(Duration(seconds: 0), () => true),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Text('Carregando...');
-                              } else {
-                                return Text('Falha ao obter o preço');
-                              }
-                            },
+                          return ListTile(
+                            title: Text('$name ($symbol)'),
+                            subtitle: Builder(builder: (context) {
+                              return FutureBuilder<double?>(
+                                future: fetchCryptoPrice(id, 'BRL'),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return Text('Carregando');
+                                  } else if (snapshot.hasData && snapshot.data != null) {
+                                    final price = snapshot.data!;
+                                    return Text('R\$${price.toStringAsFixed(2)}');
+                                  } else {
+                                    return FutureBuilder<bool>(
+                                      future: Future.delayed(Duration(seconds: 5), () => true),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState == ConnectionState.waiting) {
+                                          return Text('Carregando...');
+                                        } else {
+                                          return Text('Falha ao obter o preço');
+                                            }
+                                      },
+                                    );
+                                  }
+                                },
+                              );
+                            }),
                           );
-                        }
-                      },
-                    );
-                  }),
-                );
-              },
-            ),
+                        },
+                      ),
           ),
         ],
       ),
