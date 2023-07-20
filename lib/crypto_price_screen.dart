@@ -63,7 +63,7 @@ class _CryptoPriceScreenState extends State<CryptoPriceScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: cryptocurrencies.length > 10 ? 10 : cryptocurrencies.length,
+              itemCount: cryptocurrencies.length > 5 ? 5 : cryptocurrencies.length,
               itemBuilder: (context, index) {
                 final cryptocurrency = cryptocurrencies[index];
                 final name = cryptocurrency['name'];
